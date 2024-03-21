@@ -13,39 +13,61 @@
 # limitations under the License.
 
 import streamlit as st
-from streamlit.logger import get_logger
+import pandas as pd
+import joblib
+import mlflow
+import os
 
-LOGGER = get_logger(__name__)
+# Initialiser le suivi de MLflow
+mlflow.start_run(run_id='modest_stem_3016ct2x49')
 
+# Charger le modèle .pkl
+model = joblib.load('model.pkl')
 
-def run():
-    st.set_page_config(
-        page_title="Hello",
-        page_icon="👋",
-    )
+# Définir une fonction pour effectuer des prédictions
+def predict(data):
+    prediction = model.predict(data)
+    return prediction
 
-    st.write("###Predict the onset of diabetes based on diagnostic measures")
+# Définir le titre et l'icône de la page
+st.set_page_config(
+    page_title="Prédiction du diabète",
+    page_icon="💉",
+)
 
-    st.sidebar.success("Select a demo above.")
+# Titre de l'application
+st.title('Prédiction du diabète')
 
-    st.markdown(
-        """
-        Streamlit is an open-source app framework built specifically for
-        Machine Learning and Data Science projects.
-        **👈 Select a demo from the sidebar** to see some examples
-        of what Streamlit can do!
-        ### Want to learn more?
-        - Check out [streamlit.io](https://streamlit.io)
-        - Jump into our [documentation](https://docs.streamlit.io)
-        - Ask a question in our [community
-          forums](https://discuss.streamlit.io)
-        ### See more complex demos
-        - Use a neural net to [analyze the Udacity Self-driving Car Image
-          Dataset](https://github.com/streamlit/demo-self-driving)
-        - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
+# Description de l'application
+st.write("Prédire le début du diabète en fonction des mesures de diagnostic")
+
+# Saisie des données utilisateur
+st.sidebar.header('Saisir les caractéristiques')
+pregnancies = st.sidebar.number_input('Grossesses', min_value=0, max_value=20)
+glucose = st.sidebar.number_input('Glucose', min_value=0, max_value=300)
+# Ajouter d'autres caractéristiques ici...
+
+# Bouton pour effectuer la prédiction
+if st.sidebar.button('Prédire'):
+    # Rassembler les données saisies par l'utilisateur dans un DataFrame
+    input_data = pd.DataFrame({'Grossesses': [pregnancies],
+                               'Glucose': [glucose]})
+    # Effectuer la prédiction
+    prediction = predict(input_data)
+    # Afficher la prédiction
+    st.write('La prédiction est :', prediction)
+
+# Liens et ressources supplémentaires
+st.markdown(
     """
-    )
+    ### Pour en savoir plus :
+    - Consultez la [documentation de Streamlit](https://docs.streamlit.io)
+    - Posez vos questions sur le [forum de la communauté Streamlit](https://discuss.streamlit.io)
+    """
+)
+
+# Terminer l'exécution MLflow actuelle s'il y en a une
+if mlflow.active_run():
+    mlflow.end_run()
 
 
-if __name__ == "__main__":
-    run()
